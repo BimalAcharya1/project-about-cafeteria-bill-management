@@ -561,8 +561,327 @@ void edit()
 }
 
 
+/*function to display all records*/
+void d_all()
+{
+    int i,j=1;
+    FILE *file;
+    dis_con();
+    file=fopen("record.txt","rb");
+    rewind(file);
+    i=26;
+    fflush(file);
+    while(fread(&item,sizeof(item),1,file))
+    {
+        display(&item,i,j);
+        i++;
+        j++;
+        if ((j%20)==0)
+        {
+            gotoxy(27,47);/*textcolor(0)*/;
+            printf("Press Any Key To See More...........");
+            getch();
+            system("cls");
+            dis_con();
+            i=26;
+            continue;
+        }
+    }
+    getch();
+    if (i==26)
+    {
+        gotoxy(24,30);
+        printf("-- No Order Found --");
+    }
+    getch();
+    fclose(file);
+    d_mainmenu();
+}
 
+/*function to display by quantity*/
+void d_quan()
+{
+    int i,j=1;
+    int a,b;
+    FILE *file;
+    dis_con();
+    file=fopen("record.txt","rb");
+    rewind(file);
+    i=26;
+    gotoxy(16,20);;
+    printf("Enter Lower Range: ");
+    scanf("%d",&a);
+    gotoxy(16,21);
+    printf("Enter Upper Range:");
+    scanf("%d",&b);
+    fflush(file);
+    while(fread(&item,sizeof(item),1,file))
+    {
+        if((item.quantity>=a)&&(item.quantity<=b))
+        {
+            display(&item,i,j);
+            i++;
+            j++;
+            if ((j%20)==0)
+            {
+                gotoxy(27,47);
+                printf("Press Any Key To See More......");
+                getch();
+                system("cls");
+                dis_con();
+                i=26;
+                continue;
+            }
+        }
+    }
+    getch();
+    if (i==26)
+    {
+        gotoxy(28,30);
+        printf(" No Items Found.");
+    }
+    getch();
+    d_search();
+    fclose(file);
+}
 
+/*function to display by rate*/
+void d_rate()
+{
+    int i,j=1;
+    float a,b;
+    FILE *file;
+    dis_con();
+    file=fopen("record.txt","rb");
+    rewind(file);
+    i=26;
+    gotoxy(16,20);;
+    printf("Enter Lower Range: ");
+    scanf("%f",&a);
+    gotoxy(16,21);
+    printf("Enter Upper Range: ");
+    scanf("%f",&b);
+    fflush(file);
+    while(fread(&item,sizeof(item),1,file))
+    {
+        if((item.rate>=a)&&(item.rate<=b))
+        {
+            display(&item,i,j);
+            i++;
+            j++;
+            if ((j%20)==0)
+            {
+                gotoxy(27,47);
+                printf("Press Any Key To See More.....");
+                getch();
+                system("cls");
+                dis_con();
+                i=26;
+                continue;
+            }
+        }
+    }
+    getch();
+    if (i==26)
+    {
+        gotoxy(28,30);
+        printf(" No Item Found ");
+    }
+    getch();
+    fclose(file);
+    d_search();
+}
+
+/*function to display by code*/
+void d_code()
+{
+    int i,j=1;
+    char x[4]= {0};
+    FILE *file;
+    dis_con();
+    file=fopen("record.txt","rb");
+    rewind(file);
+    i=26;
+    gotoxy(16,20);;
+    printf("Enter Item Code: ");
+    scanf("%s",x);
+    fflush(file);
+    while(fread(&item,sizeof(item),1,file))
+    {
+        if((strcmp(item.code,x)==0))
+        {
+            display(&item,i,j);
+            i++;
+            j++;
+            break;
+        }
+    }
+    if (i==26)
+    {
+        gotoxy(28,30);
+        printf("No Item Found");
+    }
+    getch();
+    fclose(file);
+    d_search();
+}
+
+/*function to display window for item display*/
+void dis_con()
+{
+    int i;
+    system("cls");
+    gotoxy(20,10);
+    ;
+    for (i=1; i<=10; i++)
+        printf("\xdb");
+    printf(" ABC ");
+    for (i=1; i<=10; i++)
+        printf("\xdb");
+    printf("\n\n");
+    gotoxy(30,11);
+    printf(" CAFE");
+//textcolor(1);
+    gotoxy(32,17);
+    printf("DISPLAYING ALL ORDERS") ;
+//textcolor(8);
+    gotoxy(18,23);
+    printf ("SN.   Item Name   Item Code      Rate     Quantity");
+}
+
+/*function to display in screen*/
+void display(rec *item,int i,int j)
+{
+    gotoxy(16,i);//textcolor(13);
+    printf("%4d",j);
+    printf("%9s",item->name);
+    printf("%12s",item->code);
+    printf("%14.2f",item->rate);
+    printf("%11d",item->quantity);
+}
+
+/*function to delete records*/
+void del()
+{
+    int flag;
+    char x[ANS];
+    FILE *file,*file1;
+    system("cls");
+//textbackground(11);
+//textcolor(0);
+    window(23,51,25,34);
+    gotoxy(29,18);
+    printf("DELETE ORDERS");
+    gotoxy(27,27);
+    printf("Enter Item Code: ");
+    scanf("%s",x);
+    flag=check(x);
+    if(flag==0)
+    {
+        file1=fopen("record1.txt","ab");
+        file=fopen("record.txt","rb");
+        rewind(file);
+        while (fread(&item,sizeof (item),1,file))
+        {
+            if(strcmp(item.code,x)!=0)
+                fwrite(&item,sizeof(item),1,file1);
+        }
+        gotoxy(27,29);
+        printf("---Item Deleted---");
+        remove("record.txt");
+        rename("record1.txt","record.txt");
+    }
+    if (flag==1)
+    {
+        gotoxy(25,29);
+        printf("---Item Does Not Exist---");
+        gotoxy(30,31);
+        printf("TRY AGAIN");
+    }
+    fclose(file1);
+    fclose(file);
+    getch();
+    d_mainmenu();
+}
+
+/*function to check validity of code while editing and deleting*/
+int check(char x[ANS])
+{
+    FILE *file;
+    int flag=1;
+    file=fopen("record.txt","rb");
+    rewind(file);
+    while (fread(&item,sizeof (item),1,file))
+    {
+        if(strcmp(item.code,x)==0)
+        {
+            flag=0;
+            break;
+        }
+    }
+    fclose(file);
+    return flag;
+}
+
+/*function to display box*/
+void window(int a,int b,int c,int d)
+{
+    int i;
+    system("cls");
+    gotoxy(20,10);
+//textcolor(1);
+    for (i=1; i<=10; i++)
+        printf("\xdb");
+    printf(" WELCOME TO ABC ");
+    for (i=1; i<=10; i++)
+        printf("\xdb");
+    printf("\n\n");
+    gotoxy(30,11);
+    printf("CAFETERIA ORDER SYSTEM");
+//textcolor(4);
+    for (i=a; i<=b; i++)
+    {
+        gotoxy(i,17);
+        printf("\xdb");
+        gotoxy(i,19);
+        printf("\xdb");
+        gotoxy(i,c);
+        printf("\xdb");
+        gotoxy(i,d);
+        printf("\xdb");
+    }
+
+    gotoxy(a,17);
+    printf("\xdb");
+    gotoxy(a,18);
+    printf("\xdb");
+    gotoxy(a,19);
+    printf("\xdb");
+    gotoxy(b,17);
+    printf("\xdb");
+    gotoxy(b,18);
+    printf("\xdb");
+    gotoxy(b,19);
+    printf("\xdb");
+//textcolor(4);
+    for(i=c; i<=d; i++)
+    {
+        gotoxy(a,i);
+        printf("\xdb");
+        gotoxy(b,i);
+        printf("\xdb");
+    }
+    gotoxy(a,c);
+    printf("\xdb");
+    gotoxy(a,d);
+    printf("\xdb");
+    gotoxy(b,c);
+    printf("\xdb");
+    gotoxy(b,d);
+    printf("\xdb");
+//textbackground(11);
+//textcolor(0);
+}
 
 
 
