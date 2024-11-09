@@ -346,6 +346,219 @@ void bill()
     d_mainmenu();
 }
 
+/*function to display bill window*/
+void dbill()
+{
+    int i;
+    gotoxy(20,10);
+//;
+    for (i=1; i<=10; i++)
+        printf("-");
+    printf(" ABC ");
+    for (i=1; i<=10; i++)
+        printf("-");
+    printf("\n\n");
+    gotoxy(30,11);
+    printf("CAFE");
+//textcolor(1);
+    gotoxy(32,25);
+    printf("CUSTOMER'S BILL") ;
+//textcolor(8);
+    gotoxy(13,27);
+    printf("SN.   Item Name     Quantity     Rate          Total");
+
+}
+/*function to add records*/
+void add ()
+{
+    FILE *file;
+    char y[ACS],x[12];
+    system("cls");
+//textbackground(11);
+//textcolor(0);
+    gotoxy(25,25);
+    printf("Enter New Record(Y/N)?");
+    while(toupper(getche())=='Y')
+    {
+        system("cls");
+        file=fopen("record.txt","ab");
+        c_code(y);
+        strcpy(item.code,y);
+        gotoxy(22,28);
+        printf("Enter Rate Of The Item:");
+        scanf("%f",&item.rate);
+        gotoxy(22,30);
+        printf("Enter Quantity Of The Item:");
+        scanf("%d",&item.quantity);
+        gotoxy(22,32);
+        printf("Enter Name Of The Item:");
+        scanf("%s",item.name);
+        fseek(file,0,SEEK_END);
+        fwrite(&item,sizeof(item),1,file);
+        fclose(file);
+        gotoxy(22,34);
+        printf("Enter New Record(Y/N)?");
+
+    }
+    d_mainmenu();
+}
+
+/*function to check availability of code*/
+void c_code(char y[])
+{
+    int flag;
+    FILE *file;
+    file=fopen("record.txt","rb");
+    while(1)
+    {
+        system("cls");
+        window(20,58,23,36);
+        gotoxy(32,18);
+        printf(" ADD ORDERS ")  ;
+        flag=1;
+        rewind(file);
+        gotoxy(22,25);
+        printf("Enter New Code Of Item:");
+        scanf(" %[^\n]",y);
+        while(fread(&item,sizeof(item),1,file)==1)
+        {
+            if (strcmp(y,item.code)==0)
+            {
+                flag=0;
+                gotoxy(26,30);
+                printf("Code Already Exists");
+                gotoxy(29,32);
+                printf("Enter Again");
+                getch();
+                break;
+            }
+        }
+        if (flag==1)
+            break;
+    }
+}
+
+/*function for editing*/
+void edit()
+{
+    int flag=0,choice;
+    char x[ACS],y[ACS];
+    FILE *file;
+    int size;
+    system("cls");
+//textcolor(0);
+//textbackground(11);
+    window(20,63,20,46);
+    gotoxy(35,18);
+    printf("EDIT ORDERS");
+    ;
+    gotoxy(25,23);
+    printf("Enter Item Code: ");
+    scanf("%s",x);
+    flag=check(x);
+    if(flag==0)
+    {
+        file=fopen("record.txt","r+b");
+        rewind(file);
+        while (fread(&item,sizeof (item),1,file))
+        {
+            if(strcmp(item.code,x)==0)
+            {
+                //textcolor(0);
+                gotoxy(25,27);
+                printf("name       = %s",item.name);
+                gotoxy(25,28);
+                printf("code       = %s",item.code);
+                gotoxy(25,29);
+                printf("rate       = %g",item.rate);
+                gotoxy(25,30);
+                printf("quantity   = %d",item.quantity);
+                gotoxy(25,32);;
+                printf("Do You Want To Edit This Record?(y/n):");
+                fflush(file);
+                if(toupper(getche())=='Y')
+                {
+                    //textcolor(0);
+                    gotoxy(25,34);
+                    printf("1- Edit Name ");
+                    gotoxy(25,35);
+                    printf("2- Edit Code ");
+                    gotoxy(25,36);
+                    printf("3- Edit Rate ");
+                    gotoxy(25,37);
+                    printf("4- Edit Quantity ");
+                    gotoxy(25,39);  ;
+                    printf(" Enter Your Choice(1, 2, 3, 4) ");
+                    scanf("%d",&choice);
+                    switch(choice)
+                    {
+                    case 1:
+                        system("cls");
+                        window(23,48,20,40);
+                        gotoxy(35,18);
+                        printf("EDIT RECORDS");
+                        gotoxy(25,24);
+                        printf(" Enter New Name: ");
+                        scanf("%s",item.name);
+                        size=sizeof(item);
+                        fseek(file,-size,SEEK_CUR);
+                        fwrite(&item,sizeof(item),1,file);
+                        break;
+                    case 2:
+                        system("cls");
+                        window(23,65,20,40);
+                        gotoxy(35,18);
+                        printf("EDIT RECORDS");
+                        gotoxy(25,24);
+                        c_code(y);
+                        strcpy(item.code,y);
+                        size=sizeof(item);
+                        fseek(file,-size,SEEK_CUR);
+                        fwrite(&item,sizeof(item),1,file);
+                        break;
+                    case 3:
+                        system("cls");
+                        window(23,65,20,40);
+                        gotoxy(35,18);
+                        printf("EDIT RECORDS");
+                        gotoxy(25,24);
+                        printf(" Enter New Rate: ");
+                        scanf("%f",&item.rate);
+                        size=sizeof(item);
+                        fseek(file,-size,SEEK_CUR);
+                        fwrite(&item,sizeof(item),1,file);
+                        break;
+                    case 4:
+                        system("cls");
+                        window(23,65,20,40);
+                        gotoxy(35,18);
+                        printf("EDIT RECORDS");
+                        gotoxy(25,24);
+                        printf(" Enter New Quantity: ");
+                        scanf("%d",&item.quantity);
+                        size=sizeof(item);
+                        fseek(file,-size,1);
+                        fwrite(&item,sizeof(item),1,file);
+                        break;
+                    }
+                    gotoxy(27,30);
+                    printf("--- Item Edited---");
+                    break;
+                }
+            }
+        }
+    }
+    if (flag==1)
+    {
+        gotoxy(32,30);
+        printf("Item Does Not Exist.");
+        gotoxy(36,32);
+        printf("TRY AGAIN");
+    }
+    getch();
+    fclose(file);
+    d_mainmenu();
+}
 
 
 
